@@ -1,0 +1,11 @@
+{
+  "name": "jql.js",
+  "version": "1.0.0",
+  "description": "In-memory JSON ORM",
+  "main": "index.js",
+  "author": "Haochi Chen",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^2.1.5"
+  }
+}
