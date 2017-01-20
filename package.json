@@ -5,7 +5,12 @@
   "main": "index.js",
   "author": "Haochi Chen",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc src/*.ts test/*.ts",
+    "test": "npm run build && jasmine test/test.js"
+  },
   "devDependencies": {
+    "jasmine": "^2.5.3",
     "typescript": "^2.1.5"
   }
 }
