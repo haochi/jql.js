@@ -15,6 +15,8 @@ export class Query<T> {
     private anchorTable: TableSelection<T>;
     private tableReferences: Map<String, Table<T>> = new Map();
     private selector: Selector = (_) => [];
+    private take: number;
+    private skip: number;
 
     select(selector: Selector): Query<T> {
         this.selector = selector;
@@ -24,6 +26,21 @@ export class Query<T> {
     join<R>(table: TableOrTableSelection<R>, predicate: Predicate): Query<T> {
         const execution = new JoinExecution(this.anchorTable, this.tableToTableSelection(table), predicate);
         this.executions.push(execution);
+        return this;
+    }
+
+    where(predicate: Predicate) {
+        this.executions.push(new WhereExecution(predicate))
+        return this;
+    }
+
+    limit(limit: number) {
+        this.take = limit
+        return this;
+    }
+
+    offset(offset: number) {
+        this.skip = offset;
         return this;
     }
 
@@ -44,6 +61,14 @@ export class Query<T> {
         this.executions.forEach(execution => {
             result = execution.execute(result);
         });
+
+        if (this.skip !== undefined) {
+            result = result.slice(this.skip);
+        }
+
+        if (this.take !== undefined) {
+            result.length = this.take;
+        }
 
         return result.map(this.selector);
     }

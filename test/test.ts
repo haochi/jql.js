@@ -85,4 +85,52 @@ describe('Query', () => {
             expect(result).toEqual([ [ 'san francisco', 'san francisco' ], [ 'new york', 'new york' ], [ 'san jose', 'san jose' ], [ 'san francisco', 'san francisco' ], [ 'new york', 'new york' ], [ 'san jose', 'san jose' ], [ 'san francisco', 'san francisco' ], [ 'new york', 'new york' ], [ 'san jose', 'san jose' ] ])
         })
     })
+
+    describe('#where', () => {
+        it('should filter with the given predicate', () => {
+            const query = new Query
+            const result = query.from(resident)
+                .select(_ => [_.table<Resident>(resident).name])
+                .where(_ => _.table<Resident>(resident).id >= 2)
+                .execute()
+
+            expect(result).toEqual([ [ 'alice' ], [ 'bob' ] ])
+        })
+    })
+
+    describe('#limit & #offset', () => {
+        it('should limit', () => {
+            const query = new Query
+            const result = query.from(resident)
+                .select(_ => [_.table<Resident>(resident).name])
+                .limit(1)
+                .execute()
+
+            expect(result.length).toEqual(1)
+            expect(result).toEqual([['eve']])
+        })
+
+        it('should offset', () => {
+            const query = new Query
+            const result = query.from(resident)
+                .select(_ => [_.table<Resident>(resident).name])
+                .offset(1)
+                .execute()
+
+            expect(result.length).toEqual(2)
+            expect(result).toEqual([['alice'], ['bob']])
+        })
+
+        it('should limit and offset', () => {
+            const query = new Query
+            const result = query.from(resident)
+                .select(_ => [_.table<Resident>(resident).name])
+                .offset(1)
+                .limit(1)
+                .execute()
+
+            expect(result.length).toEqual(1)
+            expect(result).toEqual([['alice']])
+        })
+    })
 })
