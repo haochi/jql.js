@@ -9,7 +9,7 @@ type ExecuteResult = Array<TableRowReference>;
 type Selector = (tableRowReference: TableRowReference) => Rows<any>;
 
 interface Execution<T> {
-    execute(): ExecuteResult;
+    execute(intermediateResult: ExecuteResult): ExecuteResult;
 }
 
 class Table<T> {
@@ -31,18 +31,19 @@ class JoinExecution<T, R> implements Execution<T> {
     constructor(private query: Query<T>, private anchorTable: TableSelection<T>, private otherTable: TableSelection<R>, private condition: JoinCondition) {
     }
 
-    execute(): ExecuteResult {
+    execute(intermediateResult: ExecuteResult): ExecuteResult {
         const result: ExecuteResult = [];
 
-        this.anchorTable.table.all().forEach(r1 => {
-            this.otherTable.table.all().forEach(r2 => {
-                const rows = new TableRowReference();
+        intermediateResult.forEach(tableRow => {
+            this.otherTable.table.all().forEach(row => {
+                const oldValue = tableRow.table<R>(this.otherTable.table);
 
-                rows.set(this.anchorTable, r1);
-                rows.set(this.otherTable, r2);
+                tableRow.set(this.otherTable, row);
 
-                if (this.condition(rows)) {
-                    result.push(rows);
+                if (this.condition(tableRow)) {
+                    result.push(tableRow);
+                } else {
+                    tableRow.set(this.otherTable, oldValue);
                 }
             });
         });
@@ -91,9 +92,16 @@ class Query<T> {
     }
 
     execute() {
-        let result: ExecuteResult = [];
+        const anchorTable = this.anchorTable;
+
+        let result: ExecuteResult = anchorTable.table.all().map(row => {
+            const column = new TableRowReference();
+            column.set(anchorTable, row);
+            return column;
+        });
+
         this.executions.forEach(execution => {
-            result = execution.execute();
+            result = execution.execute(result);
         });
 
         return result.map(this.selector);
@@ -106,23 +114,3 @@ class Query<T> {
         return table;
     }
 }
-
-// test
-interface IdRecord {
-    id: number
-}
-
-interface IdWithNameRecord extends IdRecord {
-    name: string
-}
-
-const table1 = new Table<IdRecord>([{ id: 1 }, { id: 3 }]);
-const table2 = new Table<IdWithNameRecord>([{ id: 1, name: 'haochi' }, { id: 2, name: 'chen' }, { id: 3, name: 'ni hao' }]);
-
-const result = table1.query().select(_ => {
-    return [_.table<IdRecord>(table1).id, _.table<IdWithNameRecord>('table2').name];
-}).join<IdWithNameRecord>(new TableSelection(table2, 'table2'), _ => {
-    return _.table<IdWithNameRecord>('table2').id === _.table<IdRecord>(table1).id;
-}).execute();
-
-console.log(result);

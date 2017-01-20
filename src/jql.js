@@ -19,16 +19,18 @@ var JoinExecution = (function () {
         this.otherTable = otherTable;
         this.condition = condition;
     }
-    JoinExecution.prototype.execute = function () {
+    JoinExecution.prototype.execute = function (intermediateResult) {
         var _this = this;
         var result = [];
-        this.anchorTable.table.all().forEach(function (r1) {
-            _this.otherTable.table.all().forEach(function (r2) {
-                var rows = new TableRowReference();
-                rows.set(_this.anchorTable, r1);
-                rows.set(_this.otherTable, r2);
-                if (_this.condition(rows)) {
-                    result.push(rows);
+        intermediateResult.forEach(function (tableRow) {
+            _this.otherTable.table.all().forEach(function (row) {
+                var oldValue = tableRow.table(_this.otherTable.table);
+                tableRow.set(_this.otherTable, row);
+                if (_this.condition(tableRow)) {
+                    result.push(tableRow);
+                }
+                else {
+                    tableRow.set(_this.otherTable, oldValue);
                 }
             });
         });
@@ -77,9 +79,14 @@ var Query = (function () {
         return this;
     };
     Query.prototype.execute = function () {
-        var result = [];
+        var anchorTable = this.anchorTable;
+        var result = anchorTable.table.all().map(function (row) {
+            var column = new TableRowReference();
+            column.set(anchorTable, row);
+            return column;
+        });
         this.executions.forEach(function (execution) {
-            result = execution.execute();
+            result = execution.execute(result);
         });
         return result.map(this.selector);
     };
@@ -91,11 +98,3 @@ var Query = (function () {
     };
     return Query;
 }());
-var table1 = new Table([{ id: 1 }, { id: 3 }]);
-var table2 = new Table([{ id: 1, name: 'haochi' }, { id: 2, name: 'chen' }, { id: 3, name: 'ni hao' }]);
-var result = table1.query().select(function (_) {
-    return [_.table(table1).id, _.table('table2').name];
-}).join(new TableSelection(table2, 'table2'), function (_) {
-    return _.table('table2').id === _.table(table1).id;
-}).execute();
-console.log(result);
