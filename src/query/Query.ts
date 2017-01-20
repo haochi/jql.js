@@ -1,5 +1,6 @@
 import { Table, Rows, Row } from '../Table';
-import { JoinCondition, JoinExecution } from './JoinExecution'
+import { JoinExecution } from './JoinExecution'
+import { WhereExecution } from './WhereExecution'
 
 type QueryResult<T> = Rows<T>;
 type QueryTableReference<T> = Table<T> | QueryTableAs;
@@ -7,6 +8,7 @@ type QueryTableAs = String | Symbol;
 type TableOrTableSelection<T> = Table<T> | TableSelection<T>;
 type Selector = (tableRowReference: TableRowReference) => Rows<any>;
 export type ExecuteResult = Array<TableRowReference>;
+export type Predicate = (tableRowReference: TableRowReference) => boolean;
 
 export class Query<T> {
     private executions : Array<Execution> = [];
@@ -19,8 +21,8 @@ export class Query<T> {
         return this;
     }
 
-    join<R>(table: TableOrTableSelection<R>, condition: JoinCondition): Query<T> {
-        const execution = new JoinExecution(this, this.anchorTable, this.tableToTableSelection(table), condition);
+    join<R>(table: TableOrTableSelection<R>, predicate: Predicate): Query<T> {
+        const execution = new JoinExecution(this.anchorTable, this.tableToTableSelection(table), predicate);
         this.executions.push(execution);
         return this;
     }

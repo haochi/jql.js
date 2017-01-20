@@ -1,9 +1,7 @@
-import { Execution, ExecuteResult, TableSelection, TableRowReference, Query } from './Query'
-
-export type JoinCondition = (tableRowReference: TableRowReference) => boolean;
+import { Execution, ExecuteResult, TableSelection, TableRowReference, Predicate } from './Query'
 
 export class JoinExecution<T, R> implements Execution {
-    constructor(private query: Query<T>, private anchorTable: TableSelection<T>, private otherTable: TableSelection<R>, private condition: JoinCondition) {
+    constructor(private anchorTable: TableSelection<T>, private otherTable: TableSelection<R>, private predicate: Predicate) {
     }
 
     execute(intermediateResult: ExecuteResult): ExecuteResult {
@@ -14,7 +12,7 @@ export class JoinExecution<T, R> implements Execution {
                 const tableRowReference = tableRow.copy();
                 tableRowReference.set(this.otherTable, row);
 
-                if (this.condition(tableRowReference)) {
+                if (this.predicate(tableRowReference)) {
                     result.push(tableRowReference);
                 }
             });
