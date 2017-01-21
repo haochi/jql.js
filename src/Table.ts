@@ -1,4 +1,5 @@
-import { Query } from './query/Query';
+import { Query, TableAs } from './query/Query';
+import { JoinType } from './query/JoinType';
 
 export type Row<T> = T;
 export type Rows<T> = Array<Row<T>>;
@@ -17,3 +18,5 @@ export class Table<T> {
         return this.rows;
     }
 }
+
+export { JoinType, TableAs };

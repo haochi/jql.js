@@ -6,14 +6,14 @@ import { JoinType } from './JoinType'
 type QueryResult<T> = Rows<T>;
 type QueryTableReference<T> = Table<T> | QueryTableAs;
 type QueryTableAs = String;
-type TableOrTableSelection<T> = Table<T> | TableSelection<T>;
+type TableOrTableSelection<T> = Table<T> | TableAs<T>;
 type Selector = (tableRowReference: TableRowReference) => Rows<any>;
 export type ExecuteResult = Array<TableRowReference>;
 export type Predicate = (tableRowReference: TableRowReference) => boolean;
 
 export class Query<T> {
     private executions : Array<Execution> = [];
-    private anchorTable: TableSelection<T>;
+    private anchorTable: TableAs<T>;
     private tableReferences: Map<String, Table<T>> = new Map();
     private selector: Selector = (_) => [];
     private take: number;
@@ -74,15 +74,15 @@ export class Query<T> {
         return result.map(this.selector);
     }
 
-    private tableToTableSelection<R>(table: TableOrTableSelection<R>) : TableSelection<R> {
+    private tableToTableSelection<R>(table: TableOrTableSelection<R>) : TableAs<R> {
         if (table instanceof Table) {
-            return new TableSelection<R>(table);
+            return new TableAs<R>(table);
         }
         return table;
     }
 }
 
-export class TableSelection<T> {
+export class TableAs<T> {
     constructor(public table: Table<T>, public as: QueryTableAs = null) {
     }
 }
@@ -106,11 +106,11 @@ export class TableRowReference {
         return null;
     }
 
-    has(table: TableSelection<any>) {
+    has(table: TableAs<any>) {
         return this.tableReference.has(table.table);
     }
 
-    set(table: TableSelection<any>, row: Row<any>) {
+    set(table: TableAs<any>, row: Row<any>) {
         if (table.as) {
             this.tableReference.set(table.as, row);
         }

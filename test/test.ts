@@ -1,5 +1,5 @@
 import { Table } from '../src/Table';
-import { Query, TableSelection } from '../src/query/Query';
+import { Query, TableAs } from '../src/query/Query';
 import { JoinType } from '../src/query/JoinType';
 
 interface State {
@@ -19,6 +19,10 @@ interface Resident {
     name: string
 }
 
+const state = new Table<State>([{ id: 1, name: 'new york' }, { id: 3, name: 'california' }, { id: 4, name: 'texas' }]);
+const city = new Table<City>([{ id: 1, stateId: 3, name: 'san francisco' }, { id: 2, stateId: 1, name: 'new york' }, { id: 3, stateId: 3, name: 'san jose' }]);
+const resident = new Table<Resident>([{ id: 1, cityId: 1, name: 'eve' }, { id: 2, cityId: 1, name: 'alice' }, { id: 3, cityId: 1, name: 'bob' }]);
+
 describe('Table', () => {
     describe('#all', () => {
         it('should contain all given data', () => {
@@ -26,13 +30,24 @@ describe('Table', () => {
             expect(table.all().length).toBe(2);
         })
     })
+
+    describe('#query', () => {
+        it('should run', () => {
+            const result = state.query()
+                .select(_ => [_.table<Resident>('rs').name, _.table(city).name, _.table(state).name])
+                .join(city, _ => _.table(state).id === _.table(city).stateId)
+                .join(new TableAs(resident, 'rs'), _ => _.table(city).id === _.table<Resident>('rs').cityId)
+                .offset(1)
+                .limit(2)
+                .execute()
+
+            const message = result.map(([name, city, state]) => `${name} lives in ${city}, ${state}`)
+            expect(message).toEqual([ 'alice lives in san francisco, california', 'bob lives in san francisco, california' ]);
+        })
+    })
 })
 
 describe('Query', () => {
-    const state = new Table<State>([{ id: 1, name: 'new york' }, { id: 3, name: 'california' }, { id: 4, name: 'texas' }]);
-    const city = new Table<City>([{ id: 1, stateId: 3, name: 'san francisco' }, { id: 2, stateId: 1, name: 'new york' }, { id: 3, stateId: 3, name: 'san jose' }]);
-    const resident = new Table<Resident>([{ id: 1, cityId: 1, name: 'eve' }, { id: 2, cityId: 1, name: 'alice' }, { id: 3, cityId: 1, name: 'bob' }]);
-    
     describe('#select', () => {
         it('should return empty rows without calling #select', () => {
             const query = new Query
@@ -79,7 +94,7 @@ describe('Query', () => {
             const query = new Query
             const result = query
                 .from(city)
-                .join<City>(new TableSelection(city, 'city2'), _ => _.table<City>(city).id === _.table<City>('city2').id)
+                .join<City>(new TableAs(city, 'city2'), _ => _.table<City>(city).id === _.table<City>('city2').id)
                 .select(_ => [_.table<City>(city).name, _.table<City>('city2').name])
                 .execute()
 

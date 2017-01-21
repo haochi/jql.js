@@ -2,12 +2,12 @@
   "name": "jql.js",
   "version": "1.0.0",
   "description": "In-memory JSON ORM",
-  "main": "index.js",
+  "main": "dist/jql.js",
   "author": "Haochi Chen",
   "license": "MIT",
   "scripts": {
     "tsc": "tsc --target es5 --lib es6 test/*.ts",
-    "uglifyjs": "npm run browserify && cd dist && uglifyjs jql.js --output jql.js --source-map jql.js.map --compress --mangle",
+    "uglifyjs": "npm run browserify && cd dist && uglifyjs jql.js --output jql.min.js --source-map jql.min.js.map --compress --mangle",
     "browserify": "npm run tsc && browserify src/Table.js -o dist/jql.js --standalone JQL --debug",
     "test": "npm run tsc && jasmine test/test.js",
     "dist": "npm run uglifyjs"
