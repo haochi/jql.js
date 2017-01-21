@@ -6,11 +6,17 @@
   "author": "Haochi Chen",
   "license": "MIT",
   "scripts": {
-    "build": "tsc src/*.ts test/*.ts",
-    "test": "npm run build && jasmine test/test.js"
+    "tsc": "tsc --target es5 --lib es6 test/*.ts",
+    "uglifyjs": "npm run browserify && cd dist && uglifyjs jql.js --output jql.js --source-map jql.js.map --compress --mangle",
+    "browserify": "npm run tsc && browserify src/Table.js -o dist/jql.js --standalone JQL --debug",
+    "test": "npm run tsc && jasmine test/test.js",
+    "dist": "npm run uglifyjs"
   },
   "devDependencies": {
+    "@types/jasmine": "^2.5.41",
+    "browserify": "^13.3.0",
     "jasmine": "^2.5.3",
-    "typescript": "^2.1.5"
+    "typescript": "^2.1.5",
+    "uglify-js": "^2.7.5"
   }
 }
