@@ -24,9 +24,18 @@ It is then available as `JQL`.
 ## Usage
 
 ```javascript
-const state = new JQL.Table([{ id: 1, name: 'new york' }, { id: 3, name: 'california' }, { id: 4, name: 'texas' }]);
-const city = new JQL.Table([{ id: 1, stateId: 3, name: 'san francisco' }, { id: 2, stateId: 1, name: 'new york' }, { id: 3, stateId: 3, name: 'san jose' }]);
-const resident = new JQL.Table([{ id: 1, cityId: 1, name: 'eve' }, { id: 2, cityId: 1, name: 'alice' }, { id: 3, cityId: 1, name: 'bob' }]);
+const state = new JQL.Table([
+    { id: 1, name: 'new york' },
+    { id: 3, name: 'california' },
+    { id: 4, name: 'texas' }]);
+const city = new JQL.Table([
+    { id: 1, stateId: 3, name: 'san francisco' },
+    { id: 2, stateId: 1, name: 'new york' },
+    { id: 3, stateId: 3, name: 'san jose' }]);
+const resident = new JQL.Table([
+    { id: 1, cityId: 1, name: 'eve' },
+    { id: 2, cityId: 1, name: 'alice' },
+    { id: 3, cityId: 1, name: 'bob' }]);
 
 const result = state.query()
                     .select(_ => [_.table('rs').name, _.table(city).name, _.table(state).name])
@@ -37,7 +46,9 @@ const result = state.query()
                     .execute()
 
 const message = result.map(([name, city, state]) => `${name} lives in ${city}, ${state}`)
-expect(message).toEqual([ 'alice lives in san francisco, california', 'bob lives in san francisco, california' ]);
+expect(message).toEqual([
+    'alice lives in san francisco, california',
+    'bob lives in san francisco, california' ]);
 ```
 
 This is analogous to the following query:
@@ -75,4 +86,5 @@ LEFT JOIN city ON state.id == city.stateId
 ```
 
 Note that it's using `_.column` instead of `_.table` above to get the city name.
-This is because for non-inner joins, it's possible for that column to not contain any data, so we use `_.column` to get the value by passing in a function to evaluate the value.
+This is because for non-inner joins, it's possible for that column to not contain any data,
+so we use `_.column` to get the value by passing in a function to evaluate the value.
