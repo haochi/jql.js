@@ -24,7 +24,7 @@ export class Query<T> {
         return this;
     }
 
-    join<R>(table: TableOrTableSelection<R>, predicate: Predicate, joinType: JoinType = JoinType.INNER): Query<T> {
+    join<R>(table: TableOrTableSelection<R>, predicate: Predicate = () => true, joinType: JoinType = JoinType.INNER): Query<T> {
         const execution = new JoinExecution(this.tableToTableSelection(table), predicate, joinType);
         this.executions.push(execution);
         return this;

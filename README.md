@@ -68,7 +68,7 @@ See more examples in `test/test.ts`.
 
 ### Join
 
-JQL supports inner, left, right, and full joins. You pass them into the `join` method, like so:
+JQL supports inner, left, right, full, and cross joins. You pass them into the `join` method, like so:
 
 ```javascript
 state.query()

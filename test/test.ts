@@ -218,4 +218,13 @@ describe('StackOverflow Example', () => {
             .execute()
         expect(result).toEqual([ [1, null], [2, null], [3, 3], [4, 4], [null, 5], [null, 6] ])
     })
+
+    it('should do cross join', () => {
+        const result = A
+            .query()
+            .select(_ => [_.column(A, t => t.a), _.column(B, t => t.b)])
+            .join(B)
+            .execute()
+        expect(result).toEqual([ [ 1, 3 ], [ 1, 4 ], [ 1, 5 ], [ 1, 6 ], [ 2, 3 ], [ 2, 4 ], [ 2, 5 ], [ 2, 6 ], [ 3, 3 ], [ 3, 4 ], [ 3, 5 ], [ 3, 6 ], [ 4, 3 ], [ 4, 4 ], [ 4, 5 ], [ 4, 6 ] ])
+    })
 })

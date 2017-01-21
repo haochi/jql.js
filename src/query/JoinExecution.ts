@@ -9,7 +9,8 @@ export class JoinExecution<T, R> implements Execution {
         [JoinType.INNER, JoinExecution.innerJoin],
         [JoinType.LEFT, JoinExecution.leftJoin],
         [JoinType.RIGHT, JoinExecution.rightJoin],
-        [JoinType.FULL, JoinExecution.fullJoin]
+        [JoinType.FULL, JoinExecution.fullJoin],
+        [JoinType.CROSS, JoinExecution.crossJoin]
     ]);
 
     constructor(private otherTable: TableAs<R>, private predicate: Predicate, private joinType: JoinType) {
@@ -97,5 +98,9 @@ export class JoinExecution<T, R> implements Execution {
         });
 
         return result;
+    }
+
+    private static crossJoin<R>(intermediateResult: ExecuteResult, otherTable: TableAs<R>, predicate: Predicate): ExecuteResult {
+        return JoinExecution.innerJoin(intermediateResult, otherTable, () => true);
     }
 }
