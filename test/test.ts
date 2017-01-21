@@ -93,7 +93,7 @@ describe('Query', () => {
             const result = query
                 .from(state)
                 .join(city, _ => _.table(state).id === _.table(city).stateId, JoinType.LEFT)
-                .select(_ => [_.table(state).name, _.table(city, t => t.name)])
+                .select(_ => [_.table(state).name, _.column(city, t => t.name)])
                 .execute()
 
             expect(result).toEqual( [ [ 'new york', 'new york' ], [ 'california', 'san francisco' ], [ 'california', 'san jose' ], [ 'texas', null ] ])
@@ -106,7 +106,7 @@ describe('Query', () => {
             const result = query
                 .from(city)
                 .join(state, _ => _.table(state).id === _.table(city).stateId, JoinType.RIGHT)
-                .select(_ => [_.table(state).name, _.table(city, t => t.name)])
+                .select(_ => [_.table(state).name, _.column(city, t => t.name)])
                 .execute()
 
             expect(result).toEqual( [ [ 'new york', 'new york' ], [ 'california', 'san francisco' ], [ 'california', 'san jose' ], [ 'texas', null ] ])
@@ -159,5 +159,48 @@ describe('Query', () => {
             expect(result.length).toEqual(1)
             expect(result).toEqual([['alice']])
         })
+    })
+})
+
+describe('StackOverflow Example', () => {
+    // http://stackoverflow.com/review/suggested-edits/10405682
+
+    const A = new Table([1,2,3,4].map(a => ({ a })))
+    const B = new Table([3,4,5,6].map(b => ({ b })))
+
+    it('should do inner join', () => {
+        const result = A
+            .query()
+            .select(_ => [_.column(A, t => t.a), _.column(B, t => t.b)])
+            .join(B, _ => _.table(A).a == _.table(B).b)
+            .execute()
+        expect(result).toEqual([ [3, 3], [4, 4] ])
+    })
+
+    it('should do left join', () => {
+        const result = A
+            .query()
+            .select(_ => [_.column(A, t => t.a), _.column(B, t => t.b)])
+            .join(B, _ => _.table(A).a == _.table(B).b, JoinType.LEFT)
+            .execute()
+        expect(result).toEqual([ [1, null], [2, null], [3, 3], [4, 4] ])
+    })
+
+    it('should do right join', () => {
+        const result = A
+            .query()
+            .select(_ => [_.column(A, t => t.a), _.column(B, t => t.b)])
+            .join(B, _ => _.table(A).a == _.table(B).b, JoinType.RIGHT)
+            .execute()
+        expect(result).toEqual([ [3, 3], [4, 4], [null, 5], [null, 6] ])
+    })
+
+    it('should do full join', () => {
+        const result = A
+            .query()
+            .select(_ => [_.column(A, t => t.a), _.column(B, t => t.b)])
+            .join(B, _ => _.table(A).a == _.table(B).b, JoinType.FULL)
+            .execute()
+        expect(result).toEqual([ [1, null], [2, null], [3, 3], [4, 4], [null, 5], [null, 6] ])
     })
 })

@@ -1,5 +1,6 @@
 export enum JoinType {
     LEFT,
     RIGHT,
-    INNER
+    INNER,
+    FULL
 }

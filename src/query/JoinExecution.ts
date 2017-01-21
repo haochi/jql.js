@@ -1,5 +1,6 @@
 import { Execution, ExecuteResult, TableSelection, TableRowReference, Predicate } from './Query'
 import { JoinType } from './JoinType'
+import { Row } from '../Table'
 
 type JoinStrategy<R> = (intermediateResult: ExecuteResult, otherTable: TableSelection<R>, predicate: Predicate) => ExecuteResult
 
@@ -7,7 +8,8 @@ export class JoinExecution<T, R> implements Execution {
     private joinStrategies: Map<JoinType, JoinStrategy<R>> = new Map([
         [JoinType.INNER, JoinExecution.innerJoin],
         [JoinType.LEFT, JoinExecution.leftJoin],
-        [JoinType.RIGHT, JoinExecution.rightJoin]
+        [JoinType.RIGHT, JoinExecution.rightJoin],
+        [JoinType.FULL, JoinExecution.fullJoin]
     ]);
 
     constructor(private otherTable: TableSelection<R>, private predicate: Predicate, private joinType: JoinType) {
@@ -72,6 +74,22 @@ export class JoinExecution<T, R> implements Execution {
             })
 
             if (!joined) {
+                const tableRowReference = new TableRowReference();
+                tableRowReference.set(otherTable, row);
+                result.push(tableRowReference);
+            }
+        });
+
+        return result;
+    }
+
+    private static fullJoin<R>(intermediateResult: ExecuteResult, otherTable: TableSelection<R>, predicate: Predicate): ExecuteResult {
+        const result: ExecuteResult = JoinExecution.leftJoin(intermediateResult, otherTable, predicate)
+        const joined: Array<Row<R>> = result.filter(row => row.has(otherTable)).map(row => row.table<R>(otherTable.table))
+        const joinedSet: Set<Row<R>> = new Set(joined)
+        
+        otherTable.table.all().forEach(row => {
+            if (!joinedSet.has(row)) {
                 const tableRowReference = new TableRowReference();
                 tableRowReference.set(otherTable, row);
                 result.push(tableRowReference);

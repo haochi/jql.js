@@ -95,11 +95,19 @@ type ColumnReader<R> =(row: Row<R>) => any;
 export class TableRowReference {
     private tableReference: Map<QueryTableReference<any>, Row<any>> = new Map();
 
-    table<R>(tableReference: QueryTableReference<R>, columnReader: ColumnReader<R> = null): Row<R> | any {
-        if (columnReader === null) {
-            return this.tableReference.get(tableReference);
+    table<R>(tableReference: QueryTableReference<R>): Row<R> {
+        return this.tableReference.get(tableReference);
+    }
+
+    column<R>(tableReference: QueryTableReference<R>, columnReader: ColumnReader<R>): any {
+        if (this.tableReference.has(tableReference)) {
+            return columnReader(this.tableReference.get(tableReference));
         }
-        return this.column(tableReference, columnReader);
+        return null;
+    }
+
+    has(table: TableSelection<any>) {
+        return this.tableReference.has(table.table);
     }
 
     set(table: TableSelection<any>, row: Row<any>) {
@@ -117,13 +125,5 @@ export class TableRowReference {
 
     clear() {
         this.tableReference.clear();
-    }
-
-    private column<R>(tableReference: QueryTableReference<R>, columnReader: ColumnReader<R>) {
-        const table = this.table(tableReference);
-        if (table) {
-            return columnReader(table);
-        }
-        return null;
     }
 }
