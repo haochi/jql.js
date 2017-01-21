@@ -1,10 +1,11 @@
 import { Table, Rows, Row } from '../Table';
 import { JoinExecution } from './JoinExecution'
 import { WhereExecution } from './WhereExecution'
+import { JoinType } from './JoinType'
 
 type QueryResult<T> = Rows<T>;
 type QueryTableReference<T> = Table<T> | QueryTableAs;
-type QueryTableAs = String | Symbol;
+type QueryTableAs = String;
 type TableOrTableSelection<T> = Table<T> | TableSelection<T>;
 type Selector = (tableRowReference: TableRowReference) => Rows<any>;
 export type ExecuteResult = Array<TableRowReference>;
@@ -23,8 +24,8 @@ export class Query<T> {
         return this;
     }
 
-    join<R>(table: TableOrTableSelection<R>, predicate: Predicate): Query<T> {
-        const execution = new JoinExecution(this.anchorTable, this.tableToTableSelection(table), predicate);
+    join<R>(table: TableOrTableSelection<R>, predicate: Predicate, joinType: JoinType = JoinType.INNER): Query<T> {
+        const execution = new JoinExecution(this.tableToTableSelection(table), predicate, joinType);
         this.executions.push(execution);
         return this;
     }
@@ -49,7 +50,7 @@ export class Query<T> {
         return this;
     }
 
-    execute() {
+    execute() : Array<any> {
         const anchorTable = this.anchorTable;
 
         let result: ExecuteResult = anchorTable.table.all().map(row => {
@@ -75,7 +76,7 @@ export class Query<T> {
 
     private tableToTableSelection<R>(table: TableOrTableSelection<R>) : TableSelection<R> {
         if (table instanceof Table) {
-            return new TableSelection<R>(table, Symbol());
+            return new TableSelection<R>(table);
         }
         return table;
     }
@@ -90,15 +91,21 @@ export interface Execution {
     execute(intermediateResult: ExecuteResult): ExecuteResult;
 }
 
+type ColumnReader<R> =(row: Row<R>) => any;
 export class TableRowReference {
     private tableReference: Map<QueryTableReference<any>, Row<any>> = new Map();
 
-    table<R>(tableReference: QueryTableReference<R>) :Row<R> {
-        return this.tableReference.get(tableReference);
+    table<R>(tableReference: QueryTableReference<R>, columnReader: ColumnReader<R> = null): Row<R> | any {
+        if (columnReader === null) {
+            return this.tableReference.get(tableReference);
+        }
+        return this.column(tableReference, columnReader);
     }
 
     set(table: TableSelection<any>, row: Row<any>) {
-        this.tableReference.set(table.as, row);
+        if (table.as) {
+            this.tableReference.set(table.as, row);
+        }
         this.tableReference.set(table.table, row);
     }
 
@@ -106,5 +113,17 @@ export class TableRowReference {
         const tableRowReference = new TableRowReference;
         this.tableReference.forEach((v, k) => tableRowReference.tableReference.set(k, v));
         return tableRowReference
+    }
+
+    clear() {
+        this.tableReference.clear();
+    }
+
+    private column<R>(tableReference: QueryTableReference<R>, columnReader: ColumnReader<R>) {
+        const table = this.table(tableReference);
+        if (table) {
+            return columnReader(table);
+        }
+        return null;
     }
 }

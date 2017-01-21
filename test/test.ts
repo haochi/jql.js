@@ -1,5 +1,6 @@
 import { Table } from '../src/Table';
 import { Query, TableSelection } from '../src/query/Query';
+import { JoinType } from '../src/query/JoinType';
 
 interface State {
     id: number
@@ -28,7 +29,7 @@ describe('Table', () => {
 })
 
 describe('Query', () => {
-    const state = new Table<State>([{ id: 1, name: 'new york' }, { id: 3, name: 'california' }]);
+    const state = new Table<State>([{ id: 1, name: 'new york' }, { id: 3, name: 'california' }, { id: 4, name: 'texas' }]);
     const city = new Table<City>([{ id: 1, stateId: 3, name: 'san francisco' }, { id: 2, stateId: 1, name: 'new york' }, { id: 3, stateId: 3, name: 'san jose' }]);
     const resident = new Table<Resident>([{ id: 1, cityId: 1, name: 'eve' }, { id: 2, cityId: 1, name: 'alice' }, { id: 3, cityId: 1, name: 'bob' }]);
     
@@ -41,15 +42,15 @@ describe('Query', () => {
                 expect(row.length).toBe(0)
             })
         })
-    });
-
-    describe('#join', () => {
 
         it('should return columns given in select', () => {
             const query = new Query
             const result = query.from(state).select(_ => [_.table<State>(state).id]).execute()
-            expect(result).toEqual([[1], [3]])
+            expect(result).toEqual([[1], [3], [4]])
         })
+    });
+
+    describe('#join', () => {
 
         it('should return the joined tables', () => {
             const query = new Query
@@ -83,6 +84,32 @@ describe('Query', () => {
                 .execute()
 
             expect(result).toEqual([ [ 'san francisco', 'san francisco' ], [ 'new york', 'new york' ], [ 'san jose', 'san jose' ], [ 'san francisco', 'san francisco' ], [ 'new york', 'new york' ], [ 'san jose', 'san jose' ], [ 'san francisco', 'san francisco' ], [ 'new york', 'new york' ], [ 'san jose', 'san jose' ] ])
+        })
+    })
+
+    describe('#join -> left', () => {
+        it('should return the left joined table', () => {
+            const query = new Query
+            const result = query
+                .from(state)
+                .join(city, _ => _.table(state).id === _.table(city).stateId, JoinType.LEFT)
+                .select(_ => [_.table(state).name, _.table(city, t => t.name)])
+                .execute()
+
+            expect(result).toEqual( [ [ 'new york', 'new york' ], [ 'california', 'san francisco' ], [ 'california', 'san jose' ], [ 'texas', null ] ])
+        })
+    })
+
+    describe('#join -> right', () => {
+        it('should return the left joined table', () => {
+            const query = new Query
+            const result = query
+                .from(city)
+                .join(state, _ => _.table(state).id === _.table(city).stateId, JoinType.RIGHT)
+                .select(_ => [_.table(state).name, _.table(city, t => t.name)])
+                .execute()
+
+            expect(result).toEqual( [ [ 'new york', 'new york' ], [ 'california', 'san francisco' ], [ 'california', 'san jose' ], [ 'texas', null ] ])
         })
     })
 
