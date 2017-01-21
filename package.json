@@ -1,7 +1,7 @@
 {
   "name": "jql.js",
-  "version": "1.0.0",
-  "description": "In-memory JSON ORM",
+  "version": "1.0.1",
+  "description": "Query JSON data in a SQL manner",
   "main": "dist/jql.js",
   "author": "Haochi Chen",
   "license": "MIT",
