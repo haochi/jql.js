@@ -1,6 +1,6 @@
 {
   "name": "jql.js",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Query JSON data in a SQL manner",
   "main": "dist/jql.js",
   "author": "Haochi Chen",

@@ -45,6 +45,16 @@ describe('Table', () => {
             expect(message).toEqual([ 'alice lives in san francisco, california', 'bob lives in san francisco, california' ]);
         })
     })
+
+    describe('#setData', () => {
+        it('should override the initial dataset', () => {
+            const table = new Table<State>([]);
+            expect(table.all().length).toBe(0);
+
+            table.setData([{ id: 1, name: 'washington' }]);
+            expect(table.all().length).toBe(1);
+        })
+    });
 })
 
 describe('Query', () => {

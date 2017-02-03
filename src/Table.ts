@@ -8,6 +8,10 @@ export class Table<T> {
     constructor(private rows: Rows<T>) {
     }
 
+    setData(rows: Rows<T>) {
+        this.rows = rows;
+    }
+
     query(): Query<T> {
         const query = new Query<T>();
         query.from(this);
