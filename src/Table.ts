@@ -17,6 +17,10 @@ export class Table<T> {
     all(): Rows<T> {
         return this.rows;
     }
+
+    as(alias: string): TableAs<T> {
+        return new TableAs(this, alias);
+    }
 }
 
-export { JoinType, TableAs };
+export { JoinType };

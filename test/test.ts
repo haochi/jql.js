@@ -1,5 +1,5 @@
 import { Table } from '../src/Table';
-import { Query, TableAs } from '../src/query/Query';
+import { Query } from '../src/query/Query';
 import { JoinType } from '../src/query/JoinType';
 
 interface State {
@@ -36,7 +36,7 @@ describe('Table', () => {
             const result = state.query()
                 .select(_ => [_.table<Resident>('rs').name, _.table(city).name, _.table(state).name])
                 .join(city, _ => _.table(state).id === _.table(city).stateId)
-                .join(new TableAs(resident, 'rs'), _ => _.table(city).id === _.table<Resident>('rs').cityId)
+                .join(resident.as('rs'), _ => _.table(city).id === _.table<Resident>('rs').cityId)
                 .offset(1)
                 .limit(2)
                 .execute()
@@ -94,7 +94,7 @@ describe('Query', () => {
             const query = new Query
             const result = query
                 .from(city)
-                .join<City>(new TableAs(city, 'city2'), _ => _.table<City>(city).id === _.table<City>('city2').id)
+                .join<City>(city.as('city2'), _ => _.table<City>(city).id === _.table<City>('city2').id)
                 .select(_ => [_.table<City>(city).name, _.table<City>('city2').name])
                 .execute()
 

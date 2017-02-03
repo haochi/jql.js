@@ -40,7 +40,7 @@ const resident = new JQL.Table([
 const result = state.query()
                     .select(_ => [_.table('rs').name, _.table(city).name, _.table(state).name])
                     .join(city, _ => _.table(state).id === _.table(city).stateId)
-                    .join(new JQL.TableAs(resident, 'rs'), _ => _.table(city).id === _.table('rs').cityId)
+                    .join(resident.as('rs'), _ => _.table(city).id === _.table('rs').cityId)
                     .offset(1)
                     .limit(2)
                     .execute()
@@ -62,7 +62,7 @@ OFFSET 1
 LIMIT 2
 ```
 
-You can use `JQL.TableAs` to create an alias for the table. It would be useful for performing self joins.
+You can use `Table#as(alias: string)` to create an alias for the table. It would be useful for performing self joins.
 
 See more examples in `test/test.ts`.
 
